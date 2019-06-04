@@ -1,6 +1,6 @@
 
 
-class apiClass:
+class ApiClass:
     '''This class represents a class in the API documentation'''
     def __init__(self, name="", description=""):
         self.name = name
