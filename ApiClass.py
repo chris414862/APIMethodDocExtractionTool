@@ -10,7 +10,7 @@ class ApiClass:
 
     def string(self):
         ret = "###\n"+str(self.name)+"\n###\n"
-        ret += str(self.description)+"\n"
+        ret += str(re.sub(r"(\s)+",r"\1",str(self.description.strip())))+"\n"
         for method in self.methods:
             ret += str(method.string().strip())+"\n"
 

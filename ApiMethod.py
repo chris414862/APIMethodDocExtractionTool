@@ -11,16 +11,16 @@ class ApiMethod:
 
     def string(self):
         ret = "---\n"+str(self.name)+"\n---\n"
-        ret += str(self.description) +"\n\n"
-        ret += "Parameters: \n" + str(self.parameters.strip())+"\n\n"
-        ret += "Returns: \n" + str(self.returns.strip())+"\n\n"
+        ret += str(re.sub(r"(\s)+",r"\1",str(self.description.strip()))) +"\n\n"
+        ret += "Parameters: \n" + re.sub(r"(\s)+",r"\1",str(self.parameters.strip()))+"\n\n"
+        ret += "Returns: \n" + re.sub(r"(\s)+",r"\1",str(self.returns.strip()))+"\n\n"
         return ret
 
 
     def attach_descriptions(self, tag):
         for string in tag.strings:
             if not re.search(r"^\s*$", string):
-                self.description += string.strip()
+                self.description += string.strip() + " "
 
     def attach_parameters(self, tag):
         for string in tag.strings:

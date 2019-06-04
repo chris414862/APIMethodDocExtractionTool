@@ -20,8 +20,11 @@ for package_url in package_urls:
         package.append(scrape_class_url(class_url))
     library.append(package)
     print()
-    print("Sample from scrapes:")
-    print(package[random.randint(0,len(package))].string())
+    if len(package) > 0:
+        index = random.randint(0,len(package))
+        print("Sample from scrapes(index"+str(index)+" ):")
+        print(package[index].string())
     i+=1
+
 
 
