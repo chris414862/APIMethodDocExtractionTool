@@ -5,28 +5,6 @@ from ApiMethod import ApiMethod
 import re
 
 
-def attach_descriptions(object, tag):
-    for string in tag.strings:
-        if not re.search(r"^\s*$", string):
-            object.description += string.strip()
-
-
-def attach_parameters(object, tag):
-    for string in tag.strings:
-        if not re.search(r"^\s?$", string):
-            object.parameters += string.strip() + " "
-    if object.parameters != "":
-        object.parameters += "|||\n"
-
-
-def attach_returns(object, tag):
-    for string in tag.strings:
-        if not re.search(r"^\s?$", string):
-            object.returns += string.strip() + " "
-    if object.returns != "":
-        object.returns += "|||\n"
-
-
 def get_class_info(text_tag):
     # Find heading for class
     class_name_tag = text_tag.find("h1", "api-title")
@@ -39,7 +17,7 @@ def get_class_info(text_tag):
     if text_tag is None:
         return new_api_class
 
-    attach_descriptions(new_api_class, text_tag)
+    new_api_class.attach_descriptions(text_tag)
     new_api_class.description += "\n"
 
     # Check for more descriptions in the next tags
@@ -48,7 +26,7 @@ def get_class_info(text_tag):
             if tag.string is not None:
                 if re.search(r"Summary[ \n]?", tag.string):
                     break
-            attach_descriptions(new_api_class, tag)
+            new_api_class.attach_descriptions(tag)
             new_api_class.description += "\n"
 
     return new_api_class
@@ -59,13 +37,13 @@ def assign_params_and_rets(new_method, tag):
     if type_tag is not None:
         child_of_tag = tag.find("tr")
         if child_of_tag is not None:
-            for sibling in child_of_tag.find_next_siblings("tr"):
-                if isinstance(sibling, Tag):
+            for row_tag in child_of_tag.find_next_siblings("tr"):
+                if isinstance(row_tag, Tag):
                     if type_tag.string == "Parameters":
-                        attach_parameters(new_method, sibling)
+                        new_method.attach_parameters(row_tag)
 
                     if type_tag.string == "Returns":
-                        attach_returns(new_method, sibling)
+                        new_method.attach_returns(row_tag)
 
 
 def get_method_info(text_tag):
@@ -82,17 +60,17 @@ def get_method_info(text_tag):
     # Method description
     text_tag = text_tag.find("p")
     # print("_____\n"+str(text_tag.prettify())+"\n______")
-    attach_descriptions(new_method, text_tag)
+    new_method.attach_descriptions(text_tag)
 
     # Check for more descriptions in the next tags
     for tag in text_tag.next_siblings:
         if tag.name == "p":
-            attach_descriptions(new_method, tag)
+            new_method.attach_descriptions(tag)
 
         if tag.name == "ul":
             add_newline = 1
             for bullet_point in tag.find_all("li"):
-                attach_descriptions(new_method, bullet_point)
+                new_method.attach_descriptions(bullet_point)
                 new_method.description += "\n"
 
         # Assign parameters and return values
