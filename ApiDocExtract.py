@@ -10,9 +10,6 @@ i = 0
 
 library = []
 for package_url in package_urls:
-    if i == 0:
-        i+=1
-        continue
     if i == 2:
         break
     class_urls = get_api_class_urls(package_url)
