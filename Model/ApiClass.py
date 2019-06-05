@@ -20,3 +20,6 @@ class ApiClass:
         for string in tag.strings:
             if not re.search(r"^\s*$", string):
                 self.description += string.strip()
+
+def class_name_from_url(url):
+    return re.sub(r".*/([^/]*)\.html", r"\1", url)
