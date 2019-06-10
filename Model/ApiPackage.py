@@ -7,6 +7,8 @@ class ApiPackage:
         self.name = name
         self.description = description
         self.classes = []
+        self.number_of_results = 0
+        self.bad_class_reads = list()
 
     def set_package_name(self, url):
         # print("package regex:")
