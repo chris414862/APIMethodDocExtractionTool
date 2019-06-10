@@ -11,3 +11,9 @@ class ApiLibrary:
 
     def set_library_name(self, url):
         self.name =  re.sub(r".*reference/(.*packages)", r"\1", url)
+
+    def string(self):
+        ret = ""
+        for package in self.packages:
+            ret += str(package.string()) + "\n\n"
+        return ret
