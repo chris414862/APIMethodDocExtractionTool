@@ -28,12 +28,13 @@ def main():
 
     # Get urls for each package in library
     package_urls = get_urls(url, "packages")
-
     print("Number of packages: "+str(len(package_urls)))
+
+    # Number of processes to utilize
     max_workers = 15
 
+    # Execute processes
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-
         for i in range(0, len(package_urls)):
             process_id = i+1
             future = executor.submit(my_process, process_id, package_urls[i])
