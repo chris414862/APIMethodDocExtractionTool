@@ -29,6 +29,7 @@ def my_process(*args):
     # Get arguments
     process_id = args[0]
     package_url = args[1]
+    verbose = args[2]
     package = ApiPackage()
     package.set_package_name(package_url)
     print("process_id: "+str(process_id)+"\npackage_url: "+str(package_url)+"\n\t"+str(process_id) +
@@ -38,7 +39,7 @@ def my_process(*args):
     class_urls = get_urls(package_url, "classes", )
 
     if class_urls is None:
-        print("\tNo classes in package: "+package.name)
+        if verbose: print("\tNo classes in package: "+package.name)
         package.number_of_class_urls = 0
         return serialize_package(package)
 
@@ -57,7 +58,7 @@ def my_process(*args):
                 print("Bad url read for class: "+class_name_from_url(result.url))
                 package.bad_class_reads.append(result.url)
             try:
-                print("\t\t"+str(process_id)+": package: "+str(package.name)+": Scraping class: "
+                if verbose: print("\t\t"+str(process_id)+": package: "+str(package.name)+": Scraping class: "
                                                                              + str(class_name_from_url(result.url)))
             except:
                 print("Unknown error in package: "+str(package.name)+"\nresult from grequests:"+str(result))
@@ -68,14 +69,17 @@ def my_process(*args):
                 new_class = get_documentation(result.content)
             except Exception as e:
                 print("Exception in parsing of "+str(class_name_from_url(result.url)))
+                if result.url not in package.bad_class_reads:
+                    package.bad_class_reads.append(result.url)
                 print(e)
             package.classes.append(new_class)
 
     # Print results
-    print("\t"+str(package.name)+" results:")
-    for api_class in package.classes:
-        print("\t\t" + str(process_id) + ": package: "+str(package.name)+" class: " + api_class.name
-              + " number of methods: " + str( len(api_class.methods)))
+    if verbose:
+        print("\t"+str(package.name)+" results:")
+        for api_class in package.classes:
+            print("\t\t" + str(process_id) + ": package: "+str(package.name)+" class: " + api_class.name
+                  + " number of methods: " + str( len(api_class.methods)))
 
     return serialize_package(package)
 

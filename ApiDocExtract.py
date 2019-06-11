@@ -20,6 +20,7 @@ def main():
         url = sys.argv[1]
     else:
         print("Usage: "+str(sys.argv[0])+" [url of library] [filename to save to]" )
+        sys.exit()
 
     # Initialize library
     library = ApiLibrary()
@@ -36,7 +37,8 @@ def main():
 
         for i in range(0, len(package_urls)):
             process_id = i+1
-            future = executor.submit(my_process, process_id, package_urls[i])
+            verbose = 0
+            future = executor.submit(my_process, process_id, package_urls[i], verbose)
             future.add_done_callback(functools.partial(add_to_library, library))
 
     print("Final package count: "+str(len(library.packages)))
