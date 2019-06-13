@@ -31,6 +31,9 @@ def write_class(api_class, csv_writer):
         row_temp = ["","","",method.name,method.description,method.parameters, method.returns]
         csv_writer.writerow(row_temp)
 
+    # Add marker to aid in reading csv
+    csv_writer.writerow(["","","","end_of_methods"])
+
 
 
 def write_package_info(package, csv_writer):
@@ -71,6 +74,11 @@ def write_to_csv(filename, library):
                 write_package_info(package, csv_writer)
                 for api_class in package.classes:
                     write_class(api_class, csv_writer)
+
+                # Add markers to aid in reading csv
+                csv_writer.writerow(["","","end_of_classes"])
+            csv_writer.writerow(["", "end_of_packages"])
+
     except Exception as e:
         print("Error in opening/writing to "+str(filename))
         print(e)
