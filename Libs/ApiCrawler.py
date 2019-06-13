@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 from Libs.DocumentExtractor import get_documentation
-import threading
 import re
 """
 This module contains methods to scrape different types of information from websites
@@ -115,9 +114,7 @@ def scrape_class_url(class_url):
     :return: ApiClass object with fully populated fields, including all methods
     :rtype ApiClass
     """
-    #thread_lock.acquire(blocking=1)
     result = requests.get(class_url)
-    #thread_lock.release()
     if result.status_code != 200:
         print("Error: request to "+str(class_url)+" was not successful")
         return None

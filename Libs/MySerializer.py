@@ -74,7 +74,7 @@ def serialize_package(package):
     line1 = str(package.name)+"~~"+str(package.number_of_class_urls)+"~~"+str(len(package.classes))+"!3*"
     line2 = ""
     if len(package.bad_class_reads) > 0:
-        line2 = package.bad_class_reads[1]
+        line2 = package.bad_class_reads[0]
         for i in range(1,len(package.bad_class_reads)):
             line2 += "~~" + str(package.bad_class_reads[i])
     line2 += "!3*"

@@ -115,7 +115,7 @@ def scrape_method_info(container_tag):
                 new_method.description += "\n"
 
         # Assign parameters and return values
-        if tag.name == "table" and tag["class"] == ["responsive"]:
+        if tag.name == "table" and "class" in tag.attrs and tag["class"] == ["responsive"]:
             scrape_params_and_rets(new_method, tag)
 
     return new_method

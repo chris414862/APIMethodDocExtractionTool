@@ -14,13 +14,41 @@ argument should be the name of the output file containing all of the scraped inf
 Created by Chris Crabtree 6/5/2019
 """
 
-
-def main():
-    if len(sys.argv) > 2:
-        url = sys.argv[1]
-    else:
+def process_args():
+    if len(sys.argv) < 3:
         print("Usage: "+str(sys.argv[0])+" [url of library] [filename to save to]" )
         sys.exit()
+
+    url = sys.argv[1]
+    filename = sys.argv[2]
+    verbose = False
+    append = False
+    for arg in sys.argv:
+        if arg == "-v":
+            verbose = True
+        if arg == "-a":
+            append = True
+
+    return url, filename, verbose, append
+
+
+def error_check(library):
+    error_flag = 0
+    for package in library.packages:
+        if len(package.bad_class_reads) > 0:
+            error_flag = 1
+            print("Error in package " + str(package.name))
+            for bad_read in package.bad_class_reads:
+                print("\tDid not read url properly: "+ str(bad_read))
+
+    if error_flag:
+        print("Error occured in network. Consider re-running program")
+    else:
+        print("All clear")
+
+
+def main():
+    (url, filename, verbose, append) = process_args()
 
     # Initialize library
     library = ApiLibrary()
@@ -29,22 +57,30 @@ def main():
 
     # Get urls for each package in library
     package_urls = get_urls(url, "packages")
-    print("Number of packages: "+str(len(package_urls)))
+    total_packages = len(package_urls)
+    print("Number of packages: "+str(total_packages))
 
     # Number of processes to utilize
-    max_workers = 15
+    max_workers = 10
+    if total_packages < max_workers:
+        max_workers = total_packages
 
     # Execute processes
+    packages_completed = 0
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         for i in range(0, len(package_urls)):
             process_id = i+1
-            verbose = 0
-            future = executor.submit(my_process, process_id, package_urls[i], verbose)
+            future = executor.submit(my_process, process_id, package_urls[i], verbose, library.name, total_packages)
             future.add_done_callback(functools.partial(add_to_library, library))
 
     print("Final package count: "+str(len(library.packages)))
-    print("Saving library to " + sys.argv[2])
-    write_to_csv(sys.argv[2], library)
+
+    # Check for bad url reads
+    print("Checking results...")
+    error_check(library)
+
+    print("Saving library to " + filename)
+    write_to_csv(filename, library)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ class ApiClass:
             if re.search(r"Summary[ \n]?", string):
                 break
             if not re.search(r"^\s*$", string):
-                self.description += string.strip()
+                self.description += string.strip() + " "
 
 
 def class_name_from_url(url):

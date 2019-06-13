@@ -16,7 +16,7 @@ def write_class(api_class, csv_writer):
     :type csv_writer: csv.Writer
     :return:
     """
-    row1 = [""]
+    row1 = ["", ""]
     name = api_class.name
     if api_class.name is not None:
         name = api_class.name.strip()
@@ -28,7 +28,7 @@ def write_class(api_class, csv_writer):
     csv_writer.writerow(row1)
 
     for method in api_class.methods:
-        row_temp = ["","",method.name,method.description,method.parameters, method.returns]
+        row_temp = ["","","",method.name,method.description,method.parameters, method.returns]
         csv_writer.writerow(row_temp)
 
 
@@ -43,7 +43,7 @@ def write_package_info(package, csv_writer):
     :type csv_writer: csv.Writer
     :return:
     """
-    row = list()
+    row = [""]
     row.append(package.name)
     row.append(package.description)
     row.append(package.number_of_class_urls)
@@ -62,10 +62,18 @@ def write_to_csv(filename, library):
     :type filename: str
     :return:
     """
-    with open(filename, 'w', newline='', encoding='utf-8') as save_file:
-        csv_writer = csv.writer(save_file, dialect="excel")
-        for package in library.packages:
-            write_package_info(package, csv_writer)
-            for api_class in package.classes:
-                write_class(api_class, csv_writer)
+    try:
+        with open(filename, 'w', newline='', encoding='utf-8') as save_file:
+            csv_writer = csv.writer(save_file, dialect="excel")
+            row = [str(library.name), str(len(library.packages))]
+            csv_writer.writerow(row)
+            for package in library.packages:
+                write_package_info(package, csv_writer)
+                for api_class in package.classes:
+                    write_class(api_class, csv_writer)
+    except Exception as e:
+        print("Error in opening/writing to "+str(filename))
+        print(e)
+
+
 

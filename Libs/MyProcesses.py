@@ -30,16 +30,23 @@ def my_process(*args):
     process_id = args[0]
     package_url = args[1]
     verbose = args[2]
+    library_name = args[3]
+    max_packages = args[4]
+
     package = ApiPackage()
-    package.set_package_name(package_url)
-    print("process_id: "+str(process_id)+"\npackage_url: "+str(package_url)+"\n\t"+str(process_id) +
-          ": Scraping package: "+str(package.name))
+    package.set_package_name(package_url, library_name)
+    if verbose:
+        print("process_id: "+str(process_id)+"\npackage_url: "+str(package_url)+"\n\t"+str(process_id) +
+              ": Scraping package: " + str(package.name))
+    else:
+        print(str(process_id) + ": Scraping package: " + str(package.name))
 
     # Get urls for each class in the package
     class_urls = get_urls(package_url, "classes", )
 
     if class_urls is None:
-        if verbose: print("\tNo classes in package: "+package.name)
+        if verbose:
+            print("\tNo classes in package: "+package.name)
         package.number_of_class_urls = 0
         return serialize_package(package)
 
@@ -56,23 +63,29 @@ def my_process(*args):
                 result.raise_for_status()
             except:
                 print("Bad url read for class: "+class_name_from_url(result.url))
-                package.bad_class_reads.append(result.url)
+                if result.url not in package.bad_class_reads:
+                    package.bad_class_reads.append(result.url)
+                continue
             try:
-                if verbose: print("\t\t"+str(process_id)+": package: "+str(package.name)+": Scraping class: "
+                if verbose:
+                    print("\t\t"+str(process_id)+": package: "+str(package.name)+": Scraping class: "
                                                                              + str(class_name_from_url(result.url)))
             except:
                 print("Unknown error in package: "+str(package.name)+"\nresult from grequests:"+str(result))
+                if result.url not in package.bad_class_reads:
+                    package.bad_class_reads.append(result.url)
                 continue
 
             # Scrape documentation from class url
             try:
                 new_class = get_documentation(result.content)
+                package.classes.append(new_class)
             except Exception as e:
                 print("Exception in parsing of "+str(class_name_from_url(result.url)))
                 if result.url not in package.bad_class_reads:
                     package.bad_class_reads.append(result.url)
                 print(e)
-            package.classes.append(new_class)
+
 
     # Print results
     if verbose:
@@ -80,6 +93,8 @@ def my_process(*args):
         for api_class in package.classes:
             print("\t\t" + str(process_id) + ": package: "+str(package.name)+" class: " + api_class.name
                   + " number of methods: " + str( len(api_class.methods)))
+    elif process_id == max_packages:
+        print("Cleaning up packages. May take a moment...")
 
     return serialize_package(package)
 
@@ -99,3 +114,6 @@ def add_to_library(library, res):
     if unserialized is not None:
         library.packages.append(unserialized)
         #print(unserialized.string())
+
+
+

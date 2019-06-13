@@ -26,6 +26,7 @@ class ApiMethod:
         for string in tag.strings:
             if not re.search(r"^\s?$", string):
                 self.parameters += string.strip() + " "
+            self.parameters = re.sub(r"\n(\s)*", r"\n", self.parameters)
         if self.parameters != "":
             self.parameters += "|||\n"
 
