@@ -26,7 +26,8 @@ class ApiClass:
                 if tag.strings is not None:
                     for string in tag.strings:
                         if not re.search(r"^\s*$", string):
-                            self.description += string + " "
+
+                            self.description += str(re.sub(r",","", string)) + " "
 
         for sibling in tag.next_siblings:
             if isinstance(sibling,Tag) and "class" in sibling.attrs and sibling["class"] == ["caution"]:
@@ -50,7 +51,7 @@ class ApiClass:
                     if string.parent.name == "div" or string.parent.name == "h2":
                         return
                     if not re.search(r"^\s*$", string):
-                        self.description += string+" "
+                        self.description += str(re.sub(r",","", string))+" "
 
 
         # for string in tag.next_siblings:

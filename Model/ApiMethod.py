@@ -20,12 +20,12 @@ class ApiMethod:
     def attach_descriptions(self, tag):
         for string in tag.strings:
             if not re.search(r"^\s*$", string):
-                self.description += string.strip() + " "
+                self.description += str(re.sub(r",","", string)).strip() + " "
 
     def attach_parameters(self, tag):
         for string in tag.strings:
             if not re.search(r"^\s?$", string):
-                self.parameters += string.strip() + " "
+                self.parameters += str(re.sub(r",","", string)).strip() + " "
             self.parameters = re.sub(r"\n(\s)*", r"\n", self.parameters)
         if self.parameters != "":
             self.parameters += "|||\n"
@@ -33,6 +33,6 @@ class ApiMethod:
     def attach_returns(self, tag):
         for string in tag.strings:
             if not re.search(r"^\s?$", string):
-                self.returns += string.strip() + " "
+                self.returns += str(re.sub(r",","", string)).strip() + " "
         if self.returns != "":
             self.returns += "|||\n"

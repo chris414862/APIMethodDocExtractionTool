@@ -48,20 +48,20 @@ def my_process(*args):
             print("Bad url read for class (in handler): " + class_name_from_url(request.url))
             if str(request.url) not in package.bad_class_reads:
                 print("Added to error request urls:")
-                print("package bad read len before append")
-                print(len(package.bad_class_reads))
-                package.bad_class_reads.append(str(result.url))
-                print()
-                print("package bad read len after append")
-                print(len(package.bad_class_reads))
-                for url in package.bad_class_reads:
-                    print("\t"+str(url))
-            else:
-                print("Already in error request urls:")
-                print("package bad read len")
-                print(len(package.bad_class_reads))
-                for url in package.bad_class_reads:
-                    print("\t"+str(url))
+                # print("package bad read len before append")
+                # print(len(package.bad_class_reads))
+                package.bad_class_reads.append(str(request.url))
+                # print()
+                # print("package bad read len after append")
+                # print(len(package.bad_class_reads))
+                # for url in package.bad_class_reads:
+                #     print("\t"+str(url))
+            # else:
+            #     print("Already in error request urls:")
+            #     print("package bad read len")
+            #     print(len(package.bad_class_reads))
+            #     for url in package.bad_class_reads:
+            #         print("\t"+str(url))
 
         except Exception as e:
             print("Unknown error occured with grequests")
@@ -75,7 +75,9 @@ def my_process(*args):
         print(str(process_id) + ": Scraping package: " + str(package.name))
 
     # Get urls for each class in the package
+    print("XXX")
     class_urls = get_urls(package_url, "classes")
+    print("YYY")
 
     if class_urls is None:
         if verbose:
@@ -99,21 +101,25 @@ def my_process(*args):
                     if result.url not in package.bad_class_reads:
                         print("Bad url read for class (out of handler): " + class_name_from_url(result.url))
                         if str(result.url) not in package.bad_class_reads:
-                            print("Added to error request urls:")
-                            print("package bad read len before append")
-                            print(len(package.bad_class_reads))
+                            print("Added to request urls errors:")
+                            # print("package bad read len before append")
+                            # print(len(package.bad_class_reads))
                             package.bad_class_reads.append(str(result.url))
-                            print()
-                            print("package bad read len after append")
-                            print(len(package.bad_class_reads))
-                            for url in package.bad_class_reads:
-                                print("\t" + str(url))
-                        else:
-                            print(result.url," already in ",package.name," bad class reads list")
+                            # print()
+                            # print("package bad read len after append")
+                            # print(len(package.bad_class_reads))
+                            # for url in package.bad_class_reads:
+                            #     print("\t" + str(url))
+                        # else:
+                        #     print(result.url," already in ",package.name," bad class reads list")
                     continue
                 except Exception as e:
-                    print("Unknown error occured with grequests (outside handle)")
-                    # print("Outside handler: ", end="")
+                    # Most likely was handled previously in exception handler
+                    if result is None:
+                        continue
+
+                    print("Unknown error occured with grequests")
+                    print("Outside handler: ", end="")
                     print(e)
                     continue
 
@@ -135,7 +141,6 @@ def my_process(*args):
 
             # Scrape documentation from class url
             try:
-                #print("Getting docs")
                 new_class = get_documentation(result.content, api_level, is_verbose=verbose)
 
                 # Out of api range (-1) no html sent to get documentation (-2)

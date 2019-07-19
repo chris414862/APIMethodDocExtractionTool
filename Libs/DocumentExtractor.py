@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from bs4 import Tag
 from Model.ApiClass import ApiClass
 from Model.ApiMethod import ApiMethod
+from Model.ApiPackage import ApiPackage
 import requests
 import re
 """
@@ -251,17 +252,25 @@ def get_documentation(html_doc, api_level=-1, is_verbose=False):
 def get_package_descrip(package_url):
     result = requests.get(package_url)
     soup = BeautifulSoup(result.content, 'lxml')
-    outer_tag = soup.find("div", {"class": "nocontent"})
-    if outer_tag is None:
+    container_tag = soup.find("div", id="jd-content")
+    if not isinstance(container_tag, Tag):
         return ""
-    descrip = ""
-    for sibling in outer_tag.next_siblings:
-        if sibling.name == "div" or sibling.name == "h2":
-            break
-        if isinstance(sibling, Tag) and sibling.strings is not None:
-            for string in sibling.strings:
-                if not re.search(r"^\s*$", string):
-                    descrip += string+" "
+    starter_tag = container_tag.find("div", {"class": "nocontent"})
+    if not isinstance(starter_tag, Tag):
+        return ""
+    first_package_descrip_tag = starter_tag.find_next_sibling("p")
+    if not isinstance(first_package_descrip_tag, Tag):
+        return ""
+    dummy_package = ApiPackage("dummy")
+    dummy_package.attach_descriptions(first_package_descrip_tag)
+    return dummy_package.description
+    # for sibling in starting_tag.next_siblings:
+    #     if sibling.name == "div" or sibling.name == "h2":
+    #         break
+    #     if isinstance(sibling, Tag) and sibling.strings is not None:
+    #         for string in sibling.strings:
+    #             if not re.search(r"^\s*$", string):
+    #                 descrip += str(re.sub(r",","", string))+" "
 
-    return descrip
+
 
