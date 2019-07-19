@@ -2,8 +2,10 @@ import grequests
 from Model.ApiPackage import ApiPackage
 from Libs.ApiCrawler import get_urls
 from Model.ApiClass import class_name_from_url
-from Libs.DocumentExtractor import get_documentation
+from Libs.DocumentExtractor import get_documentation, get_package_descrip
 from Libs.MySerializer import serialize_package, unserialize_package
+############
+import re
 """
 This module defines the child processes for ApiDocExtract and their return values. Each process is responsible for 
 scraping one Api package from a url specified by an argument. Separate processes are used to speed up execution. 
@@ -15,6 +17,8 @@ requests to be sent at one time.
 
 Created by Chris Crabtree 6/10/2019
 """
+
+
 
 
 def my_process(*args):
@@ -32,9 +36,38 @@ def my_process(*args):
     verbose = args[2]
     library_name = args[3]
     max_packages = args[4]
+    api_level = args[5]
 
     package = ApiPackage()
     package.set_package_name(package_url, library_name)
+    package_descrip = get_package_descrip(package_url)
+    package.set_package_descrip(package_descrip)
+
+    def exeption_handler(request, exception):
+        try:
+            print("Bad url read for class (in handler): " + class_name_from_url(request.url))
+            if str(request.url) not in package.bad_class_reads:
+                print("Added to error request urls:")
+                print("package bad read len before append")
+                print(len(package.bad_class_reads))
+                package.bad_class_reads.append(str(result.url))
+                print()
+                print("package bad read len after append")
+                print(len(package.bad_class_reads))
+                for url in package.bad_class_reads:
+                    print("\t"+str(url))
+            else:
+                print("Already in error request urls:")
+                print("package bad read len")
+                print(len(package.bad_class_reads))
+                for url in package.bad_class_reads:
+                    print("\t"+str(url))
+
+        except Exception as e:
+            print("Unknown error occured with grequests")
+            print("From handler: ", end="")
+            print(e)
+
     if verbose:
         print("process_id: "+str(process_id)+"\npackage_url: "+str(package_url)+"\n\t"+str(process_id) +
               ": Scraping package: " + str(package.name))
@@ -42,7 +75,7 @@ def my_process(*args):
         print(str(process_id) + ": Scraping package: " + str(package.name))
 
     # Get urls for each class in the package
-    class_urls = get_urls(package_url, "classes", )
+    class_urls = get_urls(package_url, "classes")
 
     if class_urls is None:
         if verbose:
@@ -52,7 +85,7 @@ def my_process(*args):
 
     # Send http request with "grequests"
     unsent_requests = (grequests.get(class_url) for class_url in class_urls)
-    results = grequests.map(unsent_requests)
+    results = grequests.map(unsent_requests, exception_handler=exeption_handler)
     package.number_of_class_urls = len(class_urls)
 
     # Loop through class urls and scrape info from each class
@@ -62,10 +95,34 @@ def my_process(*args):
             try:
                 result.raise_for_status()
             except:
-                print("Bad url read for class: "+class_name_from_url(result.url))
-                if result.url not in package.bad_class_reads:
-                    package.bad_class_reads.append(result.url)
-                continue
+                try:
+                    if result.url not in package.bad_class_reads:
+                        print("Bad url read for class (out of handler): " + class_name_from_url(result.url))
+                        if str(result.url) not in package.bad_class_reads:
+                            print("Added to error request urls:")
+                            print("package bad read len before append")
+                            print(len(package.bad_class_reads))
+                            package.bad_class_reads.append(str(result.url))
+                            print()
+                            print("package bad read len after append")
+                            print(len(package.bad_class_reads))
+                            for url in package.bad_class_reads:
+                                print("\t" + str(url))
+                        else:
+                            print(result.url," already in ",package.name," bad class reads list")
+                    continue
+                except Exception as e:
+                    print("Unknown error occured with grequests (outside handle)")
+                    # print("Outside handler: ", end="")
+                    print(e)
+                    continue
+
+            # #### Delete later  #####
+            # if re.search(r"https://developer\.android\.com/reference/android/app/admin/DeviceAdminInfo.*", result.url):
+            #     exeption_handler(result, Exception)
+            # if re.search(r"https://developer\.android\.com/reference/android/app/admin/DevicePolicyManager.*", result.url):
+            #     exeption_handler(result, Exception)
+
             try:
                 if verbose:
                     print("\t\t"+str(process_id)+": package: "+str(package.name)+": Scraping class: "
@@ -78,12 +135,21 @@ def my_process(*args):
 
             # Scrape documentation from class url
             try:
-                new_class = get_documentation(result.content)
+                #print("Getting docs")
+                new_class = get_documentation(result.content, api_level, is_verbose=verbose)
+
+                # Out of api range (-1) no html sent to get documentation (-2)
+                if new_class == -1 or new_class == -2:
+                    continue
+
                 package.classes.append(new_class)
             except Exception as e:
-                print("Exception in parsing of "+str(class_name_from_url(result.url)))
+                print("Exception in parsing of "+str(class_name_from_url(result.url)+"in package:",package.name))
                 if result.url not in package.bad_class_reads:
-                    package.bad_class_reads.append(result.url)
+                    print("Adding to",package.name,"bad class reads")
+                    package.bad_class_reads.append(str(result.url))
+                else:
+                    print(result.url," already in ",package.name," bad class reads list")
                 print(e)
 
 
@@ -96,7 +162,9 @@ def my_process(*args):
     elif process_id == max_packages:
         print("Cleaning up packages. May take a moment...")
 
+
     return serialize_package(package)
+
 
 
 def add_to_library(library, res):

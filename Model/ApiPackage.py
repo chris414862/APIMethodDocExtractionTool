@@ -12,17 +12,24 @@ class ApiPackage:
 
     def set_package_name(self, url, library_name):
         library_name = re.sub(r"\.", "/", library_name)
-        regex = r".*reference/"+ re.escape(library_name.strip()) +"/(.*)package-summary.html"
+        regex = r".*reference/"+ re.escape(library_name.strip()) +"/(.*)package-summary.*"
         self.name = re.sub(regex, r"\1", url)
+        # print(self.name)
+        if self.name == url:
+            self.name = re.sub(r".*reference/(.*)package-summary.*", r"\1", url)
         self.name = re.sub(r"[\\/]", ".", self.name)
+
         if self.name == "":
             self.name = "android"
         self.name = self.name.strip(".")
 
+    def set_package_descrip(self,descrip):
+        self.description = descrip
 
     def string(self):
         ret = ""
         ret += "@@@\n" + str(self.name) + "\n@@@\n"
+        ret += self.description
         for api_class in self.classes:
             ret += str(api_class.string().strip())+"\n\n"
         return ret

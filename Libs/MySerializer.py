@@ -1,6 +1,7 @@
 from Model.ApiPackage import ApiPackage
 from Model.ApiClass import ApiClass
 from Model.ApiMethod import ApiMethod
+import re
 """
 This module serializes and unserializes Api objects (defined in this project only) in order to facilitate inter-process
 communication. Serialization is a process that converts a data structure to a format that can be stored in a file or 
@@ -78,13 +79,17 @@ def serialize_package(package):
         for i in range(1,len(package.bad_class_reads)):
             line2 += "~~" + str(package.bad_class_reads[i])
     line2 += "!3*"
+    line3 = ""
+    if package.description is not None and package.description != "":
+        line3 += package.description
+    line3 += "!3*"
     class_strings = ""
     if len(package.classes) > 0:
         class_strings = serialize_class(package.classes[0])
         for i in range(1, len(package.classes)):
             class_strings += "$%^"+ serialize_class(package.classes[i])
 
-    return str(line1)+str(line2)+str(class_strings)
+    return str(line1)+str(line2)+str(line3)+str(class_strings)
 
 
 def unserialize_method(method_string):
@@ -153,14 +158,21 @@ def unserialize_package(package_str):
 
     lines = package_str.split("!3*")
 
+    # line 1: package name ~~ number of class urls ~~ num classes
     package_info = lines[0].split("~~")
     ret_package.name = str(package_info[0])
     ret_package.number_of_class_urls = int(package_info[1])
     num_classes = int(package_info[2])
 
-    ret_package.description = lines[1]
+    # line 2: bad_class_read 1 ~~ bad_class_read 2 ~~ ........
+    for bad_class_read in lines[1].split("~~"):
+        if not re.search(r"^\s*$", bad_class_read):
+            ret_package.bad_class_reads.append(bad_class_read)
 
-    api_classes_strings = lines[2].split("$%^")
+    # line 3 package description
+    ret_package.description = lines[2]
+
+    api_classes_strings = lines[3].split("$%^")
     for api_class_string in api_classes_strings:
         unserialized = unserialize_class(api_class_string)
         if unserialized is not None:

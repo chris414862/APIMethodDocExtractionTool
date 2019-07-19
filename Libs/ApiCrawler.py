@@ -22,13 +22,19 @@ def get_urls(orig_url, type_to_get="packages"):
     """
     base_url = re.sub(r"(.*\.com).*", r"\1", orig_url)
     # Query server at url
-    #thread_lock.acquire(blocking=1)
-    result = requests.get(orig_url)
-    #thread_lock.release()
+    repeat_count = 3
+    while repeat_count > 0:
+        result = requests.get(orig_url)
+        if result.status_code != 200:
+            if repeat_count > 0:
+                repeat_count -= 1
+                continue
+            else:
+                print("Error: request to " + str(orig_url) + " was not successful(from get_urls)")
+                return None
+        else:
+            break
 
-    if result.status_code != 200:
-        print("Error: request to " + str(orig_url) + " was not successful")
-        return None
 
     # Soupify html from result
     soup = BeautifulSoup(result.content, "html.parser")
@@ -105,7 +111,7 @@ def get_api_class_urls(soup, base_url):
     return class_urls
 
 
-def scrape_class_url(class_url):
+def scrape_class_url(class_url, api_level=-1):
     """
     Scrapes the class_url for class and method descriptions/info then returns a fully populated ApiClass object
 
@@ -114,8 +120,24 @@ def scrape_class_url(class_url):
     :return: ApiClass object with fully populated fields, including all methods
     :rtype ApiClass
     """
-    result = requests.get(class_url)
-    if result.status_code != 200:
-        print("Error: request to "+str(class_url)+" was not successful")
-        return None
-    return get_documentation(result.content)
+
+    # Query server at url
+    repeat_count = 3
+    while repeat_count > 0:
+        result = requests.get(class_url)
+        if result.status_code != 200:
+            if repeat_count > 0:
+                repeat_count -= 1
+                continue
+            else:
+                print("Error: request to " + str(class_url) + " was not successful(from get_urls)")
+                return None
+        else:
+            break
+
+
+    doc = get_documentation(result.content, api_level)
+    if doc != -1:
+        return doc
+    else:
+        return -1

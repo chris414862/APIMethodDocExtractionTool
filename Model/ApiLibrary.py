@@ -10,7 +10,9 @@ class ApiLibrary:
 
 
     def set_library_name(self, url):
+        #print(url)
         self.name = re.sub(r".*reference/(.*)packages", r"\1", url)
+        #print(self.name)
         self.name = re.sub(r"[\\/]", ".", self.name)
         if self.name == "":
             self.name = "android"
@@ -21,3 +23,4 @@ class ApiLibrary:
         for package in self.packages:
             ret += str(package.string()) + "\n\n"
         return ret
+
