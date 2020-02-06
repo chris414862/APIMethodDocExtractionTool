@@ -20,7 +20,7 @@ def process_args():
         print("Usage: "+str(sys.argv[0])+" [url of library] [filename to save to]" )
         sys.exit()
 
-    url = sys.argv[1]
+    url = sys.argv  [1]
 
     verbose = False
     append = False
@@ -31,6 +31,8 @@ def process_args():
             verbose = True
         if arg == "-a":
             append = True
+
+        # Specify up to what api level should be scraped. Argument should be of the form "-24" for up to api level 24
         if len(arg) > 1 and arg[0] == "-" and arg[1:].isdigit():
             try:
                 api_level = int(arg[1:])
@@ -65,6 +67,7 @@ def error_check(library, api_level=-1):
         urls_to_remove_from_bad_list = []
         for bad_url in package.bad_class_reads:
             print("\tDid not read url properly: " + str(bad_url))
+            print("\tAttempting to resolve...")
             try:
                 fixed_class = scrape_class_url(bad_url,api_level)
                 if fixed_class == -1:
@@ -108,7 +111,7 @@ def error_check(library, api_level=-1):
 
 def main():
     (url, verbose, append, api_level, workers) = process_args()
-
+    print(api_level)
     # Initialize library
     library = ApiLibrary()
     library.set_library_name(url)
@@ -116,6 +119,8 @@ def main():
 
     # Get urls for each package in library
     package_urls = get_urls(url, "packages")
+    for p in package_urls:
+        print(p)
     total_packages = len(package_urls)
 
     # ##### Delete later
@@ -131,7 +136,7 @@ def main():
     # Execute processes
     packages_completed = 0
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        for i in range(0, len(package_urls)):
+        for i in range(0,  len(package_urls)):
             process_id = i+1
             future = executor.submit(my_process, process_id, package_urls[i], verbose, library.name
                                      , total_packages, api_level)

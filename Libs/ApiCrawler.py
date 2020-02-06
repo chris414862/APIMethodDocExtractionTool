@@ -122,11 +122,13 @@ def scrape_class_url(class_url, api_level=-1):
     """
 
     # Query server at url
-    repeat_count = 3
+    repeat_count = 5
     while repeat_count > 0:
-        result = requests.get(class_url)
+        result = requests.get(class_url, timeout=5)
         if result.status_code != 200:
+            print('\tCould not read url.')
             if repeat_count > 0:
+                print("\tAttempting again")
                 repeat_count -= 1
                 continue
             else:

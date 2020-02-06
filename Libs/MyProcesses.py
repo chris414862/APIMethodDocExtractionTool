@@ -43,14 +43,20 @@ def my_process(*args):
     package_descrip = get_package_descrip(package_url)
     package.set_package_descrip(package_descrip)
 
+    errors = []
+
     def exeption_handler(request, exception):
         try:
-            print("Bad url read for class (in handler): " + class_name_from_url(request.url))
-            if str(request.url) not in package.bad_class_reads:
-                print("Added to error request urls:")
-                # print("package bad read len before append")
-                # print(len(package.bad_class_reads))
-                package.bad_class_reads.append(str(request.url))
+            print("Bad url read for class (in handler, Proc id: "+str(process_id)+"): "
+                  + class_name_from_url(request.url))
+            errors.append(request)
+            # if str(request.url) not in package.bad_class_reads:
+            #     print("Added to error request urls: "+request.url)
+            #     print(exception)
+            #     # print("package bad read len before append")
+            #     # print(len(package.bad_class_reads))
+            #
+            #     package.bad_class_reads.append(str(request.url))
                 # print()
                 # print("package bad read len after append")
                 # print(len(package.bad_class_reads))
@@ -75,9 +81,7 @@ def my_process(*args):
         print(str(process_id) + ": Scraping package: " + str(package.name))
 
     # Get urls for each class in the package
-    print("XXX")
     class_urls = get_urls(package_url, "classes")
-    print("YYY")
 
     if class_urls is None:
         if verbose:
@@ -88,6 +92,36 @@ def my_process(*args):
     # Send http request with "grequests"
     unsent_requests = (grequests.get(class_url) for class_url in class_urls)
     results = grequests.map(unsent_requests, exception_handler=exeption_handler)
+
+    # Attempt to resolve errors
+    attempts = 5
+    resolved_results = []
+    if len(errors) != 0:
+        for i in range(attempts):
+            if len(errors) == 0:
+                print("ALL ERRORS RESOLVED(Proc id: "+str(process_id)+")")
+                break
+            print("RESOLUTION ATTEMPT #"+str(i+1)+"(Proc id: "+str(process_id)+"): Num errors:"+str(len(errors)))
+            for request in errors:
+                print("\t"+request.url)
+            to_resolve_list = errors
+            errors = []
+
+            unsent_requests = (grequests.get(bad_request.url) for bad_request in to_resolve_list)
+            resolved_results.extend( grequests.map(unsent_requests, exception_handler=exeption_handler))
+        else: #Still requests left in errors list
+            for request in errors:
+                if str(request.url) not in package.bad_class_reads:
+                    print("Added to error request urls: "+request.url)
+                    # print(exception)
+                    # print("package bad read len before append")
+                    # print(len(package.bad_class_reads))
+
+                    package.bad_class_reads.append(str(request.url))
+        results.extend(resolved_results)
+
+
+
     package.number_of_class_urls = len(class_urls)
 
     # Loop through class urls and scrape info from each class
@@ -118,9 +152,10 @@ def my_process(*args):
                     if result is None:
                         continue
 
-                    print("Unknown error occured with grequests")
+                    print("Unknown error occured with grequests(Proc id: "+str(process_id)+"):")
                     print("Outside handler: ", end="")
                     print(e)
+                    print("Result object: "+str(results))
                     continue
 
             # #### Delete later  #####
