@@ -6,9 +6,15 @@ a formatted text file.
 requests. Thousands of API web pages can be fully scraped in a matter of minutes. On our testing machine we scraped 
 documentation on over 9,000 Api urls in under 2.5 minutes.
 
- To use this to simply download the tool and run with a "ApiDocExtract 'library url' 'filename to extract to'" command
-on command line. Specifically, the 'library url' parameter should be the url to the package index page in the desired 
-library.
+ To use this to simply download the tool and run with a "ApiDocExtract 'library_url' 'filename_to_extract_to'" command
+on command line. Specifically, the 'library_url' parameter should be the url to the package index page in the desired 
+library. 
+
+Optional arguments: <br>
+| Argument | Description | sfs |
+|----------|-------------| ------|
+|-w| Specifies the number of worker (processes).| sdfs |
+
  
  This tool requires the "grequests", "lxml", and "beautifulsoup4" packages to be installed prior to running. Tool
 has been tested with Python 3.7 only so it is most likely unstable in previous versions of python
