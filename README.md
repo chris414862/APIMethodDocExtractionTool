@@ -15,7 +15,7 @@ Optional arguments: <br>
 |----------|-------------| 
 |-w # | Specifies the number of workers (processes). Optimal number of workers is system dependent| 
 |-v | verbose output |
-|-# | Indicates the API leve UP TO which the tool should scrape. Higher documentation from higher API levels will be ignored|
+|-# | Indicates the API leve UP TO which the tool should scrape. Documentation from higher API levels will be ignored|
 
  
  This tool requires the "grequests", "lxml", and "beautifulsoup4" packages to be installed prior to running. Tool
