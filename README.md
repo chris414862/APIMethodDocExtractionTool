@@ -11,9 +11,11 @@ on command line. Specifically, the 'library_url' parameter should be the url to 
 library. 
 
 Optional arguments: <br>
-| Argument | Description | sfs |
-|----------|-------------| ------|
-|-w| Specifies the number of worker (processes).| sdfs |
+| Argument | Description | 
+|----------|-------------| 
+|-w # | Specifies the number of workers (processes). Optimal number of workers is system dependent| 
+|-v | verbose output |
+|-# | Indicates the API leve UP TO which the tool should scrape. Higher documentation from higher API levels will be ignored|
 
  
  This tool requires the "grequests", "lxml", and "beautifulsoup4" packages to be installed prior to running. Tool
