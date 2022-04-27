@@ -1,4 +1,4 @@
-# \*Fatal Bug Found in Linux Environments. Update Pending\*
+
 
 ## APIMethodDocExtractionTool
  This tool extracts the documentation for classes and methods in an Android API library and exports the documentation to 
